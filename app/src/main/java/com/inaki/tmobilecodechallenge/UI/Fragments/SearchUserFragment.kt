@@ -1,6 +1,8 @@
 package com.inaki.tmobilecodechallenge.UI.Fragments
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -8,25 +10,24 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SearchView
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.inaki.tmobilecodechallenge.Adapters.UsersAdapter
-import com.inaki.tmobilecodechallenge.Model.RepoUserModel
+import com.inaki.tmobilecodechallenge.Model.Users.RepoUserModel
 
 import com.inaki.tmobilecodechallenge.R
+import com.inaki.tmobilecodechallenge.UI.DetailsActivity
 import com.inaki.tmobilecodechallenge.Util.RecyclerOnclick
 import com.inaki.tmobilecodechallenge.ViewModel.ReposViewModel
+import kotlinx.android.synthetic.main.fragment_search_user.*
 import kotlinx.android.synthetic.main.fragment_search_user.view.*
+import kotlinx.android.synthetic.main.users_items.view.*
 import org.koin.android.viewmodel.ext.android.viewModel
-
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
 
 class SearchUserFragment : Fragment(), RecyclerOnclick {
 
-    private var param1: String? = null
-    private var param2: String? = null
     private var listener: OnFragmentInteractionListener? = null
 
     private lateinit var users: List<RepoUserModel>
@@ -36,14 +37,7 @@ class SearchUserFragment : Fragment(), RecyclerOnclick {
 
     private val reposViewModel: ReposViewModel by viewModel()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
-
+    @SuppressLint("RtlHardcoded")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -70,6 +64,12 @@ class SearchUserFragment : Fragment(), RecyclerOnclick {
 
         })
 
+        searchView.search_bar.setOnCloseListener {
+            loadAllUsers()
+            search_bar.onActionViewCollapsed()
+            true
+        }
+
         return searchView
     }
 
@@ -89,11 +89,10 @@ class SearchUserFragment : Fragment(), RecyclerOnclick {
         })
     }
 
-    fun onButtonPressed(uri: Uri) {
-        listener?.onFragmentInteraction(uri)
-    }
-
     override fun onClickListener(username: String, position: Int) {
+        val detailsIntent = Intent(context, DetailsActivity::class.java)
+        detailsIntent.putExtra("username", username)
+        startActivity(detailsIntent)
     }
 
     override fun onAttach(context: Context) {
@@ -112,16 +111,5 @@ class SearchUserFragment : Fragment(), RecyclerOnclick {
 
     interface OnFragmentInteractionListener {
         fun onFragmentInteraction(uri: Uri)
-    }
-
-    companion object {
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            SearchUserFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
     }
 }

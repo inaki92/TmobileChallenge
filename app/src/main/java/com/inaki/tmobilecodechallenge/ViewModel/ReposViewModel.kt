@@ -3,7 +3,8 @@ package com.inaki.tmobilecodechallenge.ViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.inaki.tmobilecodechallenge.Model.RepoUserModel
+import com.inaki.tmobilecodechallenge.Model.Repositories.RepoModel
+import com.inaki.tmobilecodechallenge.Model.Users.RepoUserModel
 import com.inaki.tmobilecodechallenge.Network.ApiService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -33,5 +34,29 @@ class ReposViewModel(private val apiService: ApiService): ViewModel() {
             allUsers.postValue(allUser)
         }
         return allUsers
+    }
+
+    fun getAllReposFromUser(user: String): MutableLiveData<List<RepoModel>> {
+        val allRepos = MutableLiveData<List<RepoModel>>()
+
+        viewModelScope.launch {
+            val allReposCall = withContext(Dispatchers.IO){
+                apiService.getReposFromUser(user).body()
+            }
+            allRepos.postValue(allReposCall)
+        }
+        return allRepos
+    }
+
+    fun getRepoSearchedFromUser(user: String, repoName: String): MutableLiveData<RepoModel> {
+        val oneRepo = MutableLiveData<RepoModel>()
+
+        viewModelScope.launch {
+            val repoFound = withContext(Dispatchers.IO){
+                apiService.getRepoSearched(user, repoName).body()
+            }
+            oneRepo.postValue(repoFound)
+        }
+        return oneRepo
     }
 }

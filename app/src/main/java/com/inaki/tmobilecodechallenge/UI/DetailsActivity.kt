@@ -10,12 +10,19 @@ import com.inaki.tmobilecodechallenge.UI.Fragments.ReposFragment
 class DetailsActivity : AppCompatActivity(), DetailsUserFragment.OnFragmentInteractionListener,
             ReposFragment.OnFragmentInteractionListener{
 
+    private lateinit var username: String
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_details)
+
+        username = intent.getStringExtra("username")
+    }
+
+    fun getUserName(): String{
+        return username
     }
 
     override fun onFragmentInteraction(uri: Uri) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }

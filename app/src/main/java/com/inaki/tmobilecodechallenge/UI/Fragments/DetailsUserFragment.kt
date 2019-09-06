@@ -9,49 +9,37 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Observer
-import com.inaki.tmobilecodechallenge.Model.RepoUserModel
-
+import com.inaki.tmobilecodechallenge.Model.Users.RepoUserModel
 import com.inaki.tmobilecodechallenge.R
-import com.inaki.tmobilecodechallenge.Util.RecyclerOnclick
+import com.inaki.tmobilecodechallenge.UI.DetailsActivity
+import com.inaki.tmobilecodechallenge.Util.dateFormat
 import com.inaki.tmobilecodechallenge.ViewModel.ReposViewModel
+import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.fragment_details_user.view.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.android.viewmodel.ext.android.viewModel
 
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+class DetailsUserFragment : Fragment() {
 
-class DetailsUserFragment : Fragment(), RecyclerOnclick {
-
-    private var param1: String? = null
-    private var param2: String? = null
     private var listener: OnFragmentInteractionListener? = null
 
     private lateinit var userDetails: RepoUserModel
-    private lateinit var username: String
+    private var userName: String? = null
 
     private val viewModel: ReposViewModel by viewModel()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val detailView = inflater.inflate(R.layout.fragment_details_user, container, false)
-
-        loadDetailsUser("",detailView)
-
-        return detailView
+        return inflater.inflate(R.layout.fragment_details_user, container, false)
     }
 
     private fun loadDetailsUser(userName: String, detailView: View){
-        viewModel.getUsersSearched("mojombo").observe(this, Observer { detailsUser ->
+        viewModel.getUsersSearched(userName).observe(this, Observer { detailsUser ->
             userDetails = detailsUser
             loadUiData(detailView)
         })
@@ -60,10 +48,10 @@ class DetailsUserFragment : Fragment(), RecyclerOnclick {
     @SuppressLint("SetTextI18n")
     private fun loadUiData(detailView: View){
         detailView.name.text = "Username: "+userDetails.login
-        detailView.joinDate.text = "Joined: "+userDetails.createdAt
+        detailView.joinDate.text = "Joined: " + dateFormat(userDetails.createdAt)
         detailView.location.text =
             if (userDetails.location.isNullOrEmpty()){
-                "Location not available"
+                resources.getString(R.string.no_location)
             }else{
                 "Located at: "+userDetails.location
             }
@@ -71,20 +59,37 @@ class DetailsUserFragment : Fragment(), RecyclerOnclick {
         detailView.following.text = "Following: "+userDetails.following.toString()
         detailView.bio.text =
             if (userDetails.bio == null){
-                "Biography not available"
+                resources.getString(R.string.no_bio)
             }else{
                 userDetails.bio.toString()
             }
         detailView.email.text =
             if (userDetails.email == null){
-                "Email not available"
+                resources.getString(R.string.no_email)
             }else{
                 "Email: "+userDetails.email.toString()
             }
+
+        loadAvatars(detailView)
+
     }
 
-    override fun onClickListener(username: String, position: Int) {
-        this.username = username
+    private fun loadAvatars(view: View){
+        CoroutineScope(Dispatchers.Main).launch {
+            val picture = withContext(Dispatchers.IO) {
+                Picasso.get()
+                    .load(userDetails.avatarUrl)
+                    .resize(50, 50)
+                    .centerCrop()
+            }
+            picture.into(view.detailAvatar)
+        }
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        userName = (activity as DetailsActivity).getUserName()
+        loadDetailsUser(userName!!,view!!.rootView)
     }
 
     override fun onAttach(context: Context) {
@@ -102,18 +107,6 @@ class DetailsUserFragment : Fragment(), RecyclerOnclick {
     }
 
     interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
         fun onFragmentInteraction(uri: Uri)
-    }
-
-    companion object {
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            DetailsUserFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
     }
 }

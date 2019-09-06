@@ -1,53 +1,109 @@
 package com.inaki.tmobilecodechallenge.UI.Fragments
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SearchView
+import android.widget.Toast
+import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.inaki.tmobilecodechallenge.Adapters.ReposAdapter
+import com.inaki.tmobilecodechallenge.Model.Repositories.RepoModel
 
 import com.inaki.tmobilecodechallenge.R
+import com.inaki.tmobilecodechallenge.UI.DetailsActivity
+import com.inaki.tmobilecodechallenge.Util.RecyclerOnclick
+import com.inaki.tmobilecodechallenge.ViewModel.ReposViewModel
+import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.rxkotlin.toObservable
+import kotlinx.android.synthetic.main.fragment_repos.*
+import kotlinx.android.synthetic.main.fragment_repos.view.*
+import org.koin.android.viewmodel.ext.android.viewModel
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+class ReposFragment : Fragment(), RecyclerOnclick {
 
-/**
- * A simple [Fragment] subclass.
- * Activities that contain this fragment must implement the
- * [ReposFragment.OnFragmentInteractionListener] interface
- * to handle interaction events.
- * Use the [ReposFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class ReposFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
     private var listener: OnFragmentInteractionListener? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private lateinit var listRepos: List<RepoModel>
+    private lateinit var repoByName: RepoModel
+    private lateinit var repoAdapter: ReposAdapter
+    private lateinit var repoRecycler: RecyclerView
+    private var userName: String? = null
+
+    private val reposViewModel: ReposViewModel by viewModel()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_repos, container, false)
+        val reposView = inflater.inflate(R.layout.fragment_repos, container, false)
+
+        repoRecycler = reposView.repos_recycler
+        repoRecycler.setHasFixedSize(true)
+        repoRecycler.layoutManager = LinearLayoutManager(context,LinearLayoutManager.VERTICAL,false)
+
+        reposView.repo_search.setOnQueryTextListener(object: SearchView.OnQueryTextListener{
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                loadRepoByName(userName!!,query!!)
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                return false
+            }
+
+        })
+
+        reposView.repo_search.setOnCloseListener {
+            loadReposFromUser(userName!!)
+            repo_search.onActionViewCollapsed()
+            true
+        }
+
+        return reposView
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    fun onButtonPressed(uri: Uri) {
-        listener?.onFragmentInteraction(uri)
+    private fun loadReposFromUser(user: String){
+        reposViewModel.getAllReposFromUser(user).observe(this, Observer { listReposFromUser ->
+            listRepos = listReposFromUser
+            repoAdapter = ReposAdapter(context!!,listRepos,this)
+            repoRecycler.adapter = repoAdapter
+        })
+    }
+
+    private fun loadRepoByName(user: String, repoName: String){
+        reposViewModel.getRepoSearchedFromUser(user,repoName).observe(this, Observer {repoFound ->
+            repoByName = repoFound
+            repoAdapter = ReposAdapter(context!!, listOf(repoByName),this)
+            repoRecycler.adapter = repoAdapter
+        })
+    }
+
+    @SuppressLint("CheckResult")
+    override fun onClickListener(username: String, position: Int) {
+        val urlRepo = listOf(listRepos[position].htmlUrl)
+        urlRepo.toObservable().subscribeBy(
+            onNext = {
+                val webIntent = Intent(Intent.ACTION_VIEW)
+                webIntent.data = Uri.parse(it)
+                startActivity(webIntent)
+            },
+            onError = { Toast.makeText(context,it.message, Toast.LENGTH_SHORT).show() }
+        )
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        userName = (activity as DetailsActivity).getUserName()
+        loadReposFromUser(userName!!)
     }
 
     override fun onAttach(context: Context) {
@@ -55,7 +111,7 @@ class ReposFragment : Fragment() {
         if (context is OnFragmentInteractionListener) {
             listener = context
         } else {
-            throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
+            throw RuntimeException("$context must implement OnFragmentInteractionListener")
         }
     }
 
@@ -64,39 +120,7 @@ class ReposFragment : Fragment() {
         listener = null
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     *
-     *
-     * See the Android Training lesson [Communicating with Other Fragments]
-     * (http://developer.android.com/training/basics/fragments/communicating.html)
-     * for more information.
-     */
     interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
         fun onFragmentInteraction(uri: Uri)
-    }
-
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment ReposFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            ReposFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
     }
 }

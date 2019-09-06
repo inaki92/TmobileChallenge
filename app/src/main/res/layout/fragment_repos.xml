@@ -9,4 +9,10 @@
         android:id="@+id/repo_search"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/repos_recycler"
+        android:layout_width="match_parent"
+        android:layout_height="661dp"
+        android:layout_marginTop="?attr/actionBarSize" />
 </FrameLayout>
