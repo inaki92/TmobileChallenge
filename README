@@ -5,6 +5,7 @@ Technologies Used:
 - RecyclerView
 - Koin
 - RxJava
+- LiveData
 - Retrofit
 - Coroutines
 - MVVM
