@@ -47,16 +47,4 @@ class ReposViewModel(private val apiService: ApiService): ViewModel() {
         }
         return allRepos
     }
-
-    fun getRepoSearchedFromUser(user: String, repoName: String): MutableLiveData<RepoModel> {
-        val oneRepo = MutableLiveData<RepoModel>()
-
-        viewModelScope.launch {
-            val repoFound = withContext(Dispatchers.IO){
-                apiService.getRepoSearched(user, repoName).body()
-            }
-            oneRepo.postValue(repoFound)
-        }
-        return oneRepo
-    }
 }

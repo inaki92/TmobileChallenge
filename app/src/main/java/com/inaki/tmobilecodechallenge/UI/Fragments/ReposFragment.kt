@@ -33,7 +33,7 @@ class ReposFragment : Fragment(), RecyclerOnclick {
     private var listener: OnFragmentInteractionListener? = null
 
     private lateinit var listRepos: List<RepoModel>
-    private lateinit var repoByName: RepoModel
+    private lateinit var repoByName: List<RepoModel>
     private lateinit var repoAdapter: ReposAdapter
     private lateinit var repoRecycler: RecyclerView
     private var userName: String? = null
@@ -52,7 +52,9 @@ class ReposFragment : Fragment(), RecyclerOnclick {
 
         reposView.repo_search.setOnQueryTextListener(object: SearchView.OnQueryTextListener{
             override fun onQueryTextSubmit(query: String?): Boolean {
-                loadRepoByName(userName!!,query!!)
+                repoByName = listRepos.filter { repoName -> repoName.name.toLowerCase() == query }
+                repoAdapter = ReposAdapter(context!!, repoByName,this@ReposFragment)
+                repoRecycler.adapter = repoAdapter
                 return true
             }
 
@@ -79,12 +81,17 @@ class ReposFragment : Fragment(), RecyclerOnclick {
         })
     }
 
-    private fun loadRepoByName(user: String, repoName: String){
-        reposViewModel.getRepoSearchedFromUser(user,repoName).observe(this, Observer {repoFound ->
-            repoByName = repoFound
-            repoAdapter = ReposAdapter(context!!, listOf(repoByName),this)
-            repoRecycler.adapter = repoAdapter
-        })
+    @SuppressLint("CheckResult")
+    private fun clickToWebsiteSearched(position: Int){
+        val urlRepo = listOf(repoByName[position].htmlUrl)
+        urlRepo.toObservable().subscribeBy(
+            onNext = {
+                val webIntent = Intent(Intent.ACTION_VIEW)
+                webIntent.data = Uri.parse(it)
+                startActivity(webIntent)
+            },
+            onError = { Toast.makeText(context,it.message, Toast.LENGTH_SHORT).show() }
+        )
     }
 
     @SuppressLint("CheckResult")
@@ -98,6 +105,8 @@ class ReposFragment : Fragment(), RecyclerOnclick {
             },
             onError = { Toast.makeText(context,it.message, Toast.LENGTH_SHORT).show() }
         )
+
+        clickToWebsiteSearched(position)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {

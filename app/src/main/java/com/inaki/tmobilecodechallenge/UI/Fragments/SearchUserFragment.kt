@@ -34,6 +34,7 @@ class SearchUserFragment : Fragment(), RecyclerOnclick {
     private lateinit var searchedUser: RepoUserModel
     private lateinit var searchedRecycler: RecyclerView
     private lateinit var usersAdapter: UsersAdapter
+    private var repoNum = mutableListOf<Int>()
 
     private val reposViewModel: ReposViewModel by viewModel()
 
@@ -44,7 +45,6 @@ class SearchUserFragment : Fragment(), RecyclerOnclick {
     ): View? {
         val searchView = inflater.inflate(R.layout.fragment_search_user, container, false)
 
-
         searchedRecycler = searchView.user_recycler
         searchedRecycler.setHasFixedSize(true)
         searchedRecycler.layoutManager = LinearLayoutManager(context,LinearLayoutManager.VERTICAL,false)
@@ -53,8 +53,7 @@ class SearchUserFragment : Fragment(), RecyclerOnclick {
 
         searchView.search_bar.setOnQueryTextListener(object: SearchView.OnQueryTextListener{
             override fun onQueryTextSubmit(query: String?): Boolean {
-                val userName = query!!
-                loadSearchedUser(userName)
+                loadSearchedUser(query!!)
                 return true
             }
 
