@@ -1,0 +1,46 @@
+Repoositories from GitHub.
+
+Technologies Used:
+- Kotlin
+- RecyclerView
+- Koin
+- RxJava
+- LiveData
+- Retrofit
+- Coroutines
+- MVVM
+
+Instructions: 
+The main goal for this project is to show the users from github and their repositories. 
+We need two screens:
+  First -> Should show users from github in a RecyclerView with a search bar where, you can search any specific user 
+  from the list or the whole site. The items or users should be clickabels and when you perform the click it will open the
+  second screen.
+  
+  Second -> Should show the details of the user at the top, and a list of the repositories that has, with a search bar in order
+  to find an specific repository from the list.
+  
+Result -> 
+  First -> It shows in a RecyclerView a list of users with a search bar at the top, where you can search any user, click on
+  any user will send you to the second screen.
+  
+  Second -> It shows at the top of the screen the details of the user getting from a fragment, at the bottom there is another 
+  fragment that contains a RecyclerView with the repositories of that user and a search bar to find any repository in the list,
+  by clicking on any repository item will open the website page where its located.
+
+My approach to create the application: (All the app is written in Kotlin).
+- We have a splashScreen at the beginning as a welcome message to the user.
+- I am using two activities in which I'm setting the different fragments to show the data.
+  - The activities are used to host the fragments needed.
+  - Using fragments is a better way to solve lags and problems with the UI while the user is interacting with the app.
+  
+- I am implementing MVVM architecture in order to have the app architectured and have a concisious way to deploy and manage
+the data from the model to the view.
+
+- In order to approach the SOLID principles I used dependency injection with "Koin" that is the equivalent to Dagger in Kotlin
+  - We are going to inject the fragments, network call and the viewModel.
+  
+- For manage the network calls I'm using retrofit that is a library that easily gives you the ability to handle RESTFUL service.
+  - In order to remove heavy and long tasks from the UI thread I used a combination of Coroutines to perform the api call in 
+  the background and RxJava to perform events in the app such as the click to the repository website.
+- All the data is managed by the viewModel that is the main point of using MVVM architecture.
